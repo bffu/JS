@@ -8,13 +8,14 @@
  *   - Sets 'vipEndDate' to a distant future date (e.g., 2999-01-01) for "permanent" VIP.
  *   - Sets 'agreeTermService' to true.
  *   - Sets 'passSecure' to true.
- */
+ 
 [rewrite_local]
 ^https:\/\/api2-pre\.mubu\.com\/v3\/api\/user\/current_user url script-response-body https://raw.githubusercontent.com/bffu/JS/main/mubu.js  # URL匹配规则改变
 
 [mitm] 
 hostname = api2-pre.mubu.com # hostname 改变
 
+*/
 
 // 获取原始响应体
 var body = $response.body;
