@@ -9,20 +9,18 @@
 # 启用对新域名的 MITM
 hostname = www.xmind.app
 **/
-var body = $response.body.replace(/.+/g, '{
+var body = $response.body.replace(/.+/g, `{
   "status": "ok",
   "deviceId": "09DA9FCA-A929-402A-B39D-F477E1F8D9A9",
   "bindXmind": 1,
   "subscriptionStatus": "ACTIVATED",
   "_code": 200,
   "originalTransactionID": "FAKE_PRO_ID",
-  "expireTime": 4070088000000, // 2099 年的时间戳
+  "expireTime": 4070088000000, 
   "receiptId": "7886bb3d279ad652837ab71e28231743",
   "requestId": "F8E4BDBC-28F6-4E01-9574-E86AC2C79146",
   "is_pro": true 
-}');
+}`);
 
 // 3. 脚本执行完成：
 $done({'body': body});
-
-
