@@ -1,3 +1,4 @@
+/**
 [rewrite_local]
 
 # 拦截 Xmind 的 App Store 激活地址
@@ -7,7 +8,7 @@
 
 # 启用对新域名的 MITM
 hostname = www.xmind.app
-
+**/
 var body = $response.body.replace(/.+/g, '{
   "status": "ok",
   "deviceId": "09DA9FCA-A929-402A-B39D-F477E1F8D9A9",
