@@ -1,7 +1,7 @@
 [rewrite_local]
 
 # 拦截 Xmind 的 App Store 激活地址
-^http[s]?:\/\/www.xmind.app\/_api\/appstore\/active url script-response-body xmind_pro.js
+^http[s]?:\/\/www.xmind.app\/_api\/appstore\/active url script-response-body Xmind.js
 
 [mitm] 
 
