@@ -4,7 +4,7 @@
 **************************************
 
 [rewrite_local]
-^https?:\/\/api\.(rc-backup|revenuecat)\.com\/.+ script-response-body https://raw.githubusercontent.com/bffu/Js/main/Calflow.js 
+^https?:\/\/api\.(rc-backup|revenuecat)\.com\/.+ url script-response-body https://raw.githubusercontent.com/bffu/Js/main/Calflow.js 
 
 [mitm]
 hostname = api.rc-backup.com, api.revenuecat.com, *.rc-backup.com, *.revenuecat.com
