@@ -1,6 +1,6 @@
 
 [rewrite_local]
-^https:\/\/api\.rc-backup\.com\/v1\/subscribers\/ url script-response-body https://raw.githubusercontent.com/bfffu/Js/main/Calflow.js 
+^https:\/\/api\.rc-backup\.com\/v1\/subscribers\/ url script-response-body https://raw.githubusercontent.com/bffu/Js/main/Calflow.js 
 
 [mitm]
 hostname = api.rc-backup.com
