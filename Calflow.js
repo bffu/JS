@@ -12,27 +12,27 @@ hostname = api.rc-backup.com, api.revenuecat.com, *.rc-backup.com, *.revenuecat.
 *************************************/
 
 var url = $request.url || "";
-var status = ($response && $response.status) || 200;
+var raw = $response.body;
+var obj = {};
 
-// 命中就弹，确认有没有漏网请求
 try {
-  $notify("Calflow", "hit", url);
-} catch (e) {}
+  obj = JSON.parse(raw);
+} catch (e) {
+  obj = {};
+}
+
+$notification.post("Calflow", "hit", url);
 
 var productId = "kike.calflow.pro.yearly";
 var expiresDate = "2099-12-31T23:59:59Z";
 var purchaseDate = "2026-07-26T13:14:19Z";
 var txId = "270003019445859";
-var uid = "$RCAnonymousID:b8b6bb58d8974158bd79ea32383ea31b";
-
 var nowMs = Date.now();
 var nowIso = new Date(nowMs).toISOString().replace(/\.\d{3}Z$/, "Z");
 
-// ---------- mapping ----------
+// product_entitlement_mapping
 if (url.indexOf("product_entitlement_mapping") !== -1) {
   $done({
-    status: status,
-    headers: $response.headers,
     body: JSON.stringify({
       product_entitlement_mapping: {
         "kike.calflow.pro.lifetime": {
@@ -52,8 +52,11 @@ if (url.indexOf("product_entitlement_mapping") !== -1) {
   });
 }
 
-// ---------- 其它全部当 subscriber 响应整包替换 ----------
-// 不再 merge，避免残留 unsubscribe / trial / 旧 expires
+// receipts / subscribers / 其它 RC 接口：整包替换
+var uid =
+  (obj.subscriber && obj.subscriber.original_app_user_id) ||
+  "$RCAnonymousID:b8b6bb58d8974158bd79ea32383ea31b";
+
 var body = {
   request_date_ms: nowMs,
   request_date: nowIso,
@@ -96,27 +99,4 @@ body.subscriber.entitlements.pro = {
   expires_date: expiresDate
 };
 
-// 部分 SDK 还会读 lifetime 形态，一并塞一份（不影响 yearly）
-body.subscriber.subscriptions["kike.calflow.pro.lifetime"] = {
-  original_purchase_date: purchaseDate,
-  purchase_date: purchaseDate,
-  expires_date: null,
-  is_sandbox: false,
-  refunded_at: null,
-  store_transaction_id: txId + "1",
-  unsubscribe_detected_at: null,
-  grace_period_expires_date: null,
-  period_type: "normal",
-  price: { amount: 128, currency: "CNY" },
-  display_name: null,
-  billing_issues_detected_at: null,
-  ownership_type: "PURCHASED",
-  store: "app_store",
-  auto_resume_date: null
-};
-
-$done({
-  status: 200,
-  headers: $response.headers,
-  body: JSON.stringify(body)
-});
+$done({ body: JSON.stringify(body) });
