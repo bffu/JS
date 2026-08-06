@@ -15,7 +15,6 @@ var url = $request.url || "";
 console.log("[Calflow] url = " + url);
 
 if (url.indexOf("/offerings") !== -1) {
-  console.log("[Calflow] offerings pass");
   $done({});
 }
 
@@ -26,7 +25,6 @@ if (m && m[1]) uid = decodeURIComponent(m[1]);
 var productId = "kike.calflow.pro.yearly";
 var exp = "2099-12-31T23:59:59Z";
 var pur = "2026-07-26T13:14:19Z";
-var txId = "270003019445859";
 
 var body = {
   request_date_ms: Date.now(),
@@ -41,7 +39,11 @@ var body = {
     entitlements: {},
     original_purchase_date: "2026-07-20T08:32:39Z",
     original_app_user_id: uid,
-    last_seen: new Date().toISOString().replace(/\.\d{3}Z$/, "Z")
+    last_seen: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+    // 新版 SDK 常用字段
+    management_url: "https://apps.apple.com/account/subscriptions",
+    original_application_version: "785",
+    subscriber_attributes: {}
   }
 };
 
@@ -51,7 +53,7 @@ body.subscriber.subscriptions[productId] = {
   expires_date: exp,
   is_sandbox: false,
   refunded_at: null,
-  store_transaction_id: txId,
+  store_transaction_id: "270003019445859",
   unsubscribe_detected_at: null,
   grace_period_expires_date: null,
   period_type: "normal",
@@ -70,9 +72,6 @@ body.subscriber.entitlements.pro = {
   expires_date: exp
 };
 
-console.log("[Calflow] uid=" + uid + " exp=" + exp);
-console.log("[Calflow] output length=" + JSON.stringify(body).length);
-
-$notification.post("Calflow", "Pro", "exp=" + exp);
+$notification.post("Calflow", "新版已补齐", "exp=" + exp);
 
 $done({ body: JSON.stringify(body) });
