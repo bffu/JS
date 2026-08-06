@@ -1,64 +1,122 @@
 /*************************************
-
 项目名称：Calflow
-下载地址：https://too.st/7qA
-更新日期：2026-03-22
-脚本作者：@anyeyey
-使用声明：⚠️仅供参考，转载与售卖！
+更新日期：2026-08-06
 **************************************
 
 [rewrite_local]
-^https?:\/\/api\.(rc-backup|revenuecat)\.com\/v1\/(subscribers|receipts)(\/|$|\?) url script-response-body https://raw.githubusercontent.com/bffu/Js/main/Calflow.js
+^https?:\/\/api\.(rc-backup|revenuecat)\.com\/.+ url script-response-body Calflow.js
 
 [mitm]
-hostname = api.rc-backup.com, api.revenuecat.com
+hostname = api.rc-backup.com, api.revenuecat.com, *.rc-backup.com, *.revenuecat.com
 
 *************************************/
 
+var url = $request.url || "";
+var status = ($response && $response.status) || 200;
 
-var anye = JSON.parse($response.body);
+// 命中就弹，确认有没有漏网请求
+try {
+  $notify("Calflow", "hit", url);
+} catch (e) {}
 
 var productId = "kike.calflow.pro.yearly";
-var entitlement = "pro";
-var purchaseDate = "2026-01-13T06:05:00Z";
-var expiresDate = "2099-01-20T06:05:00Z";
+var expiresDate = "2099-12-31T23:59:59Z";
+var purchaseDate = "2026-07-26T13:14:19Z";
+var txId = "270003019445859";
+var uid = "$RCAnonymousID:b8b6bb58d8974158bd79ea32383ea31b";
 
-if (!anye.subscriber) {
-  anye.subscriber = {};
+var nowMs = Date.now();
+var nowIso = new Date(nowMs).toISOString().replace(/\.\d{3}Z$/, "Z");
+
+// ---------- mapping ----------
+if (url.indexOf("product_entitlement_mapping") !== -1) {
+  $done({
+    status: status,
+    headers: $response.headers,
+    body: JSON.stringify({
+      product_entitlement_mapping: {
+        "kike.calflow.pro.lifetime": {
+          product_identifier: "kike.calflow.pro.lifetime",
+          entitlements: ["pro"]
+        },
+        "kike.calflow.pro.monthly": {
+          product_identifier: "kike.calflow.pro.monthly",
+          entitlements: ["pro"]
+        },
+        "kike.calflow.pro.yearly": {
+          product_identifier: "kike.calflow.pro.yearly",
+          entitlements: ["pro"]
+        }
+      }
+    })
+  });
 }
 
-var sub = anye.subscriber;
-
-sub.subscriptions = sub.subscriptions || {};
-sub.subscriptions[productId] = {
-  "original_purchase_date": purchaseDate,
-  "expires_date": expiresDate,
-  "is_sandbox": false,
-  "refunded_at": null,
-  "store_transaction_id": "500001601363664",
-  "unsubscribe_detected_at": null,
-  "grace_period_expires_date": null,
-  "period_type": "normal",
-  "purchase_date": purchaseDate,
-  "billing_issues_detected_at": null,
-  "ownership_type": "PURCHASED",
-  "store": "app_store",
-  "auto_resume_date": null
+// ---------- 其它全部当 subscriber 响应整包替换 ----------
+// 不再 merge，避免残留 unsubscribe / trial / 旧 expires
+var body = {
+  request_date_ms: nowMs,
+  request_date: nowIso,
+  subscriber: {
+    non_subscriptions: {},
+    first_seen: "2026-07-20T08:32:39Z",
+    original_application_version: "785",
+    other_purchases: {},
+    management_url: "https://apps.apple.com/account/subscriptions",
+    subscriptions: {},
+    entitlements: {},
+    original_purchase_date: "2026-07-20T08:32:39Z",
+    original_app_user_id: uid,
+    last_seen: nowIso
+  }
 };
 
-sub.entitlements = sub.entitlements || {};
-sub.entitlements[entitlement] = {
-  "grace_period_expires_date": null,
-  "purchase_date": purchaseDate,
-  "product_identifier": productId,
-  "expires_date": expiresDate
+body.subscriber.subscriptions[productId] = {
+  original_purchase_date: purchaseDate,
+  purchase_date: purchaseDate,
+  expires_date: expiresDate,
+  is_sandbox: false,
+  refunded_at: null,
+  store_transaction_id: txId,
+  unsubscribe_detected_at: null,
+  grace_period_expires_date: null,
+  period_type: "normal",
+  price: { amount: 58, currency: "CNY" },
+  display_name: null,
+  billing_issues_detected_at: null,
+  ownership_type: "PURCHASED",
+  store: "app_store",
+  auto_resume_date: null
 };
 
-sub.non_subscriptions = sub.non_subscriptions || {};
-sub.other_purchases = sub.other_purchases || {};
-sub.management_url = sub.management_url || "https://apps.apple.com/account/subscriptions";
+body.subscriber.entitlements.pro = {
+  grace_period_expires_date: null,
+  purchase_date: purchaseDate,
+  product_identifier: productId,
+  expires_date: expiresDate
+};
 
-anye.request_date_ms = Date.now();
-anye.request_date = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+// 部分 SDK 还会读 lifetime 形态，一并塞一份（不影响 yearly）
+body.subscriber.subscriptions["kike.calflow.pro.lifetime"] = {
+  original_purchase_date: purchaseDate,
+  purchase_date: purchaseDate,
+  expires_date: null,
+  is_sandbox: false,
+  refunded_at: null,
+  store_transaction_id: txId + "1",
+  unsubscribe_detected_at: null,
+  grace_period_expires_date: null,
+  period_type: "normal",
+  price: { amount: 128, currency: "CNY" },
+  display_name: null,
+  billing_issues_detected_at: null,
+  ownership_type: "PURCHASED",
+  store: "app_store",
+  auto_resume_date: null
+};
 
-$done({ body: JSON.stringify(anye) });
+$done({
+  status: 200,
+  headers: $response.headers,
+  body: JSON.stringify(body)
+});
