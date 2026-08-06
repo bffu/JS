@@ -11,13 +11,42 @@ hostname = api.rc-backup.com, api.revenuecat.com, *.rc-backup.com, *.revenuecat.
 
 *************************************/
 
-var url = $request.url || "";
-console.log("[Calflow] url = " + url);
+/*************************************
+项目名称：Calflow（旧版）
+适配：Loon 3.5
+说明：无通知；offerings 放行；subscribers/receipts 注入 Pro
+*************************************/
 
+var url = $request.url || "";
+
+// offerings 原样放行
 if (url.indexOf("/offerings") !== -1) {
   $done({});
 }
 
+// product_entitlement_mapping
+if (url.indexOf("product_entitlement_mapping") !== -1) {
+  $done({
+    body: JSON.stringify({
+      product_entitlement_mapping: {
+        "kike.calflow.pro.lifetime": {
+          product_identifier: "kike.calflow.pro.lifetime",
+          entitlements: ["pro"]
+        },
+        "kike.calflow.pro.monthly": {
+          product_identifier: "kike.calflow.pro.monthly",
+          entitlements: ["pro"]
+        },
+        "kike.calflow.pro.yearly": {
+          product_identifier: "kike.calflow.pro.yearly",
+          entitlements: ["pro"]
+        }
+      }
+    })
+  });
+}
+
+// subscribers / receipts
 var uid = "_7cc0bd67f31f890ef28bef368bad9b08";
 var m = url.match(/\/subscribers\/([^\/\?]+)/);
 if (m && m[1]) uid = decodeURIComponent(m[1]);
@@ -25,25 +54,23 @@ if (m && m[1]) uid = decodeURIComponent(m[1]);
 var productId = "kike.calflow.pro.yearly";
 var exp = "2099-12-31T23:59:59Z";
 var pur = "2026-07-26T13:14:19Z";
+var now = Date.now();
+var iso = new Date(now).toISOString().replace(/\.\d{3}Z$/, "Z");
 
 var body = {
-  request_date_ms: Date.now(),
-  request_date: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+  request_date_ms: now,
+  request_date: iso,
   subscriber: {
     non_subscriptions: {},
     first_seen: "2026-07-20T08:32:39Z",
-    original_application_version: "785",
+    original_application_version: null,
     other_purchases: {},
     management_url: "https://apps.apple.com/account/subscriptions",
     subscriptions: {},
     entitlements: {},
     original_purchase_date: "2026-07-20T08:32:39Z",
     original_app_user_id: uid,
-    last_seen: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
-    // 新版 SDK 常用字段
-    management_url: "https://apps.apple.com/account/subscriptions",
-    original_application_version: "785",
-    subscriber_attributes: {}
+    last_seen: iso
   }
 };
 
@@ -71,7 +98,5 @@ body.subscriber.entitlements.pro = {
   product_identifier: productId,
   expires_date: exp
 };
-
-$notification.post("Calflow", "新版已补齐", "exp=" + exp);
 
 $done({ body: JSON.stringify(body) });
