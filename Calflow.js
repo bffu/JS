@@ -51,7 +51,7 @@ var uid = "_7cc0bd67f31f890ef28bef368bad9b08";
 var m = url.match(/\/subscribers\/([^\/\?]+)/);
 if (m && m[1]) uid = decodeURIComponent(m[1]);
 
-var productId = "kike.calflow.pro.yearly";
+var productId = "kike.calflow.pro.lifetime";
 var exp = "2099-12-31T23:59:59Z";
 var pur = "2026-07-26T13:14:19Z";
 var now = Date.now();
@@ -83,7 +83,7 @@ body.subscriber.subscriptions[productId] = {
   store_transaction_id: "270003019445859",
   unsubscribe_detected_at: null,
   grace_period_expires_date: null,
-  period_type: "trial",
+  period_type: "lifetime",
   price: { amount: 98, currency: "CNY" },
   display_name: null,
   billing_issues_detected_at: null,
